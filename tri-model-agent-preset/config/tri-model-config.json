@@ -1,0 +1,611 @@
+{
+  "$schema": "tri-model-hotplug-v2",
+  "version": 2,
+  "description": "真热插拔配置 v2：模型清单从 DSH 运行时/设置动态枚举（新增模型自动出现）；每个模型单独配置成本档位；角色引用 provider/model。",
+  "models": {
+    "agnes/agnes-2.5-pro": {
+      "billing": "cheap"
+    },
+    "agnes/agnes-2.5-flash": {
+      "billing": "cheap"
+    },
+    "agnes/agnes-2.5-pro-alpha": {
+      "billing": "cheap"
+    },
+    "xiaoenai/gemini-3.1-pro": {
+      "billing": "per-call"
+    },
+    "xiaoenai/gemini-3-flash": {
+      "billing": "per-call"
+    },
+    "xiaoenai/gemini-2.5-pro": {
+      "billing": "per-call"
+    },
+    "deepseek-official/deepseek-v4-flash": {
+      "billing": "high"
+    },
+    "tiancai/deepseek-v4-flash-0731": {
+      "billing": "high"
+    },
+    "tiancai2/gpt-5.6-sol": {
+      "billing": "high"
+    },
+    "tiancai2/gpt-5.5": {
+      "billing": "high"
+    },
+    "tiancai2/gpt-5.4": {
+      "billing": "high"
+    },
+    "tiancai2/gpt-5.6-terra": {
+      "billing": "high"
+    },
+    "tiancai3/grok-4.6": {
+      "billing": "cheap"
+    },
+    "tiancai3/grok-4.5": {
+      "billing": "cheap"
+    },
+    "tiancai3/grok-4.20-multi-agent-0309": {
+      "billing": "cheap"
+    },
+    "tiancai4/claude-opus-4-8": {
+      "billing": "high"
+    },
+    "tiancai4/claude-sonnet-5": {
+      "billing": "high"
+    },
+    "tiancai4/claude-opus-4-6": {
+      "billing": "high"
+    },
+    "tiancai4/claude-opus-5": {
+      "billing": "high"
+    },
+    "tiancai4/claude-opus-4-7": {
+      "billing": "high"
+    },
+    "tiancai4/claude-sonnet-4-6": {
+      "billing": "high"
+    },
+    "tiancai4/claude-haiku-4-5-20251001": {
+      "billing": "low"
+    },
+    "tiancai4/claude-haiku-4-5": {
+      "billing": "medium"
+    },
+    "tiancai4/claude-haiku-4.5": {
+      "billing": "medium"
+    }
+  },
+  "defaultBillingByProvider": {
+    "agnes": "cheap",
+    "xiaoenai": "per-call",
+    "deepseek-official": "high",
+    "tiancai": "high",
+    "tiancai2": "medium",
+    "tiancai3": "low"
+  },
+  "roles": {
+    "direction": "tiancai2/gpt-5.4",
+    "architecture": "deepseek-official/deepseek-v4-flash",
+    "execution": "tiancai4/claude-haiku-4-5-20251001"
+  },
+  "expectedOutput": {
+    "version": 1,
+    "mode": "advisory",
+    "checks": [
+      {
+        "id": "direction-content",
+        "type": "content-match",
+        "stage": "方向",
+        "required": true,
+        "description": "方向产出应包含关键信息",
+        "contains": [
+          "方向"
+        ],
+        "minLength": 20,
+        "maxLength": 10000,
+        "forbiddenPatterns": [
+          "TODO",
+          "待补充"
+        ]
+      },
+      {
+        "id": "exec-non-empty",
+        "type": "content-match",
+        "stage": "执行",
+        "required": false,
+        "description": "执行结果应非空",
+        "minLength": 10,
+        "maxLength": 50000
+      },
+      {
+        "id": "verdict-valid",
+        "type": "content-match",
+        "stage": "终审",
+        "required": true,
+        "description": "终审结果应包含 approve 或 reject",
+        "containsAny": [
+          "approve",
+          "reject",
+          "拒绝",
+          "批准"
+        ],
+        "forbiddenPatterns": [
+          "PLACEHOLDER"
+        ]
+      }
+    ],
+    "_rule": "机械校验契约：附加、无副作用、defaults to advisory；无此节则完全 no-op。每阶段执行后同步验证，结果作为结构化证据。mode=advisory 只记录不阻断，blocking 才使必需失败计入 ok=false。"
+  },
+  "merge": {
+    "enabled": true,
+    "mode": "none",
+    "_options": [
+      "none",
+      "architecture+execution",
+      "direction+architecture",
+      "direction+architecture+execution"
+    ],
+    "options": [
+      "none",
+      "architecture+execution",
+      "direction+architecture",
+      "direction+architecture+execution"
+    ]
+  },
+  "probe": {
+    "enabled": true,
+    "intervalMs": 300000,
+    "_rule": "只探测 billing != 'per-call' 的模型；按次计费绝不探测。探测用 cheapest 模型"
+  },
+  "billingPolicy": {
+    "_matrix": {
+      "cheap": {
+        "label": "几乎无",
+        "retries": 10,
+        "probe": true,
+        "budgetCalls": null,
+        "desc": "可劲蹬使劲用：重试10次、可探测、可执行、可合并"
+      },
+      "low": {
+        "label": "低",
+        "retries": 5,
+        "probe": true,
+        "budgetCalls": null,
+        "desc": "便宜多用：重试5次"
+      },
+      "medium": {
+        "label": "中",
+        "retries": 3,
+        "probe": true,
+        "budgetCalls": null,
+        "desc": "适中：重试3次"
+      },
+      "high": {
+        "label": "高",
+        "retries": 1,
+        "probe": true,
+        "budgetCalls": null,
+        "desc": "贵但按token：重试1次，谨慎"
+      },
+      "per-call": {
+        "label": "按次",
+        "retries": 0,
+        "probe": false,
+        "budgetCalls": 2,
+        "desc": "绝不探测/绝不重试，只做方向或终审，严格预算"
+      }
+    },
+    "roleForbidden": {
+      "per-call": [
+        "architecture",
+        "execution"
+      ],
+      "_rule": "按次计费模型不能承担需要调用工具的架构/执行角色，只允许 direction（+终审）"
+    }
+  },
+  "review": {
+    "mode": "high",
+    "_options": {
+      "none": {
+        "label": "无",
+        "desc": "不审阅：执行完直接出结果，零额外成本",
+        "extraCalls": 0,
+        "cost": "0"
+      },
+      "low": {
+        "label": "低",
+        "desc": "执行模型自查：执行完成后由执行模型自检一遍，抓低级错误",
+        "extraCalls": 1,
+        "cost": "+1次执行模型调用"
+      },
+      "medium": {
+        "label": "中",
+        "desc": "架构模型复审：由架构模型审执行结果，抓结构性问题",
+        "extraCalls": 1,
+        "cost": "+1次架构模型调用"
+      },
+      "high": {
+        "label": "高",
+        "desc": "双重审阅：独立复审 + 方向师终审，最严格",
+        "extraCalls": 2,
+        "cost": "+1次架构 + 1次终审(方向师)"
+      }
+    },
+    "_rule": "审阅强度按项目重要性选择：简单任务用无/低，重要任务用中/高。审阅动作在合并/执行完成后、终审前执行",
+    "options": [
+      "none",
+      "low",
+      "medium",
+      "high"
+    ]
+  },
+  "clarify": {
+    "enabled": true,
+    "_rule": "启动前澄清(B)：开启后，执行 agent 收到指令先用 ask_user_question 向用户澄清任务关键信息（目标/约束/验收标准/输出形式），得到回答后再启动 workflow。提问一律用中文。"
+  },
+  "bounce": {
+    "enabled": true,
+    "_rule": "执行中问题冒泡(A)：子代理无法直接问用户（平台限制），遇到无法确定的关键信息时输出 NEED_USER: <中文问题> 标记；workflow 检测到后停止返回该问题，由父 agent 用 ask_user_question 中文提问，得到答案后带上下文继续或重跑。"
+  },
+  "history": {
+    "enabled": true,
+    "file": "tri-model-history.jsonl",
+    "_rule": "任务历史记录：每次运行追加一条（时间/任务/配置快照/审阅意见/各角色模型与摘要），支持读取上一条审阅意见作为参考输入。"
+  },
+  "safety": {
+    "gitSnapshot": true,
+    "trashDir": ".trash",
+    "_rule": "安全保护：①git 快照提交防破坏性覆盖；②执行子代理需要删除文件时，改为移入工作区 .trash 目录（带时间戳），不真正删除——二层保险，后悔可找回。"
+  },
+  "escalation": {
+    "stallMinutes": 5,
+    "maxRejectRetry": 2,
+    "idleTimeoutMinutesByBilling": {
+      "cheap": 3,
+      "low": 5,
+      "medium": 5,
+      "high": 5,
+      "per-call": 10
+    },
+    "_rule": "①stallMinutes/空闲超时按计费档位分层：思考慢的 per-call 放宽到10分钟（reasoning chunk 在流即不算空闲），cheap 3分钟足够；②per-call 结果不佳不重试（请示），但超时/无输出重试1次；③终审 reject 最多重跑2次防死循环。真卡死由 DSH 底层 LLM_STREAM_IDLE_TIMEOUT 兜底（默认300s）"
+  },
+  "degradation": {
+    "enabled": true,
+    "priority": [
+      "cheap",
+      "low",
+      "medium",
+      "high",
+      "per-call"
+    ],
+    "_rule": "角色不可用时按便宜→贵的优先级替换；per-call 最后兜底（因它按次）"
+  },
+  "capabilityRouting": {
+    "enabled": false,
+    "_rule": "缝合点#2 能力路由：设计草案/参考实现，未接线（enabled=false）。独立复审判定：模板函数 capabilityRoute/routeFor 未接入主流程=死代码；降级后不重跑能力校验、routeFor 键名 bug 等未修。按『先规范后实战再择机代码化』原则：真实需求出现时再接线，届时补可复现测试脚本。保留设计供参考。",
+    "roles": {
+      "direction": {
+        "capabilities": {
+          "allowedDomains": [
+            "decision",
+            "strategy",
+            "prioritization",
+            "review-approval",
+            "tradeoff-analysis"
+          ],
+          "forbiddenDomains": [
+            "coding",
+            "file-ops",
+            "shell",
+            "debugging",
+            "data-manipulation"
+          ],
+          "desc": "决策者：定方向、排优先级、做终审；绝不写代码/碰文件/跑命令"
+        }
+      },
+      "architecture": {
+        "capabilities": {
+          "allowedDomains": [
+            "system-design",
+            "architecture",
+            "code-review",
+            "planning",
+            "risk-analysis",
+            "investigation"
+          ],
+          "forbiddenDomains": [
+            "grunt-work",
+            "bulk-editing",
+            "large-file-rewrite"
+          ],
+          "desc": "总架构师：设计、方案、复审；不做批量脏活"
+        }
+      },
+      "execution": {
+        "capabilities": {
+          "allowedDomains": [
+            "coding",
+            "file-ops",
+            "shell",
+            "debugging",
+            "data-manipulation",
+            "verification",
+            "testing",
+            "mcp-tools"
+          ],
+          "forbiddenDomains": [
+            "final-approval",
+            "direction-setting"
+          ],
+          "desc": "执行层：写代码、改文件、跑命令、验证、调 MCP 工具；不做方向/终审"
+        }
+      }
+    },
+    "taskDomains": {
+      "direction-need": [
+        "decision",
+        "strategy",
+        "prioritization"
+      ],
+      "architecture-need": [
+        "system-design",
+        "architecture",
+        "planning"
+      ],
+      "execution-need": [
+        "coding",
+        "file-ops",
+        "shell",
+        "verification",
+        "testing"
+      ]
+    },
+    "mcpToolDomains": {
+      "_rule": "缝合点#3 关联：MCP 外部工具域只开放给执行层（mcp-tools 能力）；方向/架构不暴露外部工具面，避免无关会话污染与 schema token 成本。",
+      "owner": "execution",
+      "servers": {
+        "filesystem": {
+          "tools": [
+            "read_file",
+            "read_multiple_files",
+            "write_file",
+            "edit_file",
+            "create_directory",
+            "list_directory",
+            "directory_tree",
+            "move_file",
+            "search_files",
+            "get_file_info",
+            "list_allowed_directories"
+          ],
+          "enabled": false,
+          "note": "默认禁用（安全处置：npx 下载即执行触发杀软报毒）；启用需用户删 disabled:true 并建议换本地 vendored server"
+        }
+      }
+    },
+    "routingLogic": {
+      "steps": [
+        "1. 任务声明所需能力域（taskDomains 三档：direction/architecture/execution-need）",
+        "2. 候选角色 = roles 中能力画像 allowedDomains 覆盖该档需求、且 non-forbidden",
+        "3. billing 约束：per-call 只能 direction(+终审)；其余按 billingPolicy 档位",
+        "4. 双条件同时满足才选中；无候选 → 降级（degradation）或 NEED_USER 冒泡"
+      ],
+      "example": "任务=改代码+验证 → execution-need=[coding,file-ops,verification] → 执行层(hai ku 能力域覆盖) 匹配；方向层 forbiddenDomains 含 coding → 正确排除"
+    }
+  },
+  "changeManagement": {
+    "enabled": false,
+    "_rule": "缝合点#4 变更安全：设计草案/参考实现，未接线（enabled=false）。独立复审判定：acquireLease/releaseLease/arbitrateConflict 未接入主流程=死代码；仲裁未按 priority 实现、租约无释放路径、baseState 未用。串行写为主场景下必要性低，真实多写者并发场景出现时再接线。保留设计供参考（与并发规范 concurrency-guide.md 衔接）。",
+    "changeDomains": {
+      "config": {
+        "files": [
+          "tri-model-config.json"
+        ],
+        "leaseHolder": null,
+        "desc": "配置域：热插拔配置，唯一写者为编排者/用户，子代理不得直接改"
+      },
+      "workflow": {
+        "files": [
+          "workflow-template.md"
+        ],
+        "leaseHolder": null,
+        "desc": "编排模板域：架构层设计、执行层不得改结构，只允许增量注释"
+      },
+      "preset": {
+        "files": [
+          "<DSH_HOME>/.agent-presets/tri-model/agent.cordis.yml"
+        ],
+        "leaseHolder": null,
+        "desc": "预设域：用户根 preset（占位路径，下载者替换为自身 DSH_HOME），只允许编排者（父agent）经 escalate 修改"
+      },
+      "docs": {
+        "files": [
+          "TRI-MODEL-PROTOCOL.md",
+          "tri-model-archive.md",
+          "RESUME-HANDOFF.md",
+          "DSH-TRUST-CHECKLIST.md",
+          "docs/archive/tri-model-architecture.md"
+        ],
+        "leaseHolder": null,
+        "desc": "文档域：执行层可补增量，不得删除他人内容"
+      },
+      "scratch": {
+        "files": [
+          "hotplug-changerecord/**"
+        ],
+        "leaseHolder": null,
+        "desc": "工作产出域：执行层主战场，多写者场景需租约协调"
+      }
+    },
+    "leaseRules": {
+      "acquire": "写文件前先声明 leaseHolder；同一文件已有租约 → 等待/冒泡，不抢写",
+      "release": "该阶段审阅通过或用户拍板后释放",
+      "conflict": "检测到基线被他人修改（git diff 非预期）→ 暂停，按优先级仲裁或 NEED_USER 冒泡，绝不静默覆盖"
+    },
+    "arbitration": {
+      "priority": [
+        "direction",
+        "architecture",
+        "execution"
+      ],
+      "method": "冲突时高优先级角色裁决；同级冲突冒泡用户；涉及 preset/config 的冲突一律冒泡用户",
+      "backup": "写前 git 快照（safety.gitSnapshot），冲突可 git checkout 回滚"
+    }
+  },
+  "permissionIntents": {
+    "enabled": true,
+    "_rule": "缝合点#5：角色权限意图声明，挂 DSH 原生 permissionPresets（workspace-write=workspace-write+ask / danger-full-access=danger-full-access+never / custom 推导）。DSH 服务已存在（ctx.permissionPresets.set(session,name)），本节点供编排层映射与文档化，GUI 选择器按此意图配置。",
+    "roleIntents": {
+      "direction": {
+        "preset": "workspace-write",
+        "rationale": "决策者只读审慎：不写文件、不跑 shell，workspace-write+ask 足够；绝不 danger-full-access"
+      },
+      "architecture": {
+        "preset": "workspace-write",
+        "rationale": "架构师设计+复审：只读为主，必要时写文档，ask 审批兜底"
+      },
+      "execution": {
+        "preset": "workspace-write",
+        "rationale": "执行层干活：写文件/跑命令都在 workspace-write 沙箱内，破坏性/工作区外操作显式 escalate 需用户批准"
+      }
+    },
+    "escalationPolicy": {
+      "_rule": "escalate 是执行层唯一出沙箱通道：一次性、带 justification、用户批准；被拒即停止，不换通道绕行（与 pwsh 工具规则一致）",
+      "allowedFor": [
+        "execution",
+        "architecture"
+      ],
+      "neverFor": [
+        "direction"
+      ],
+      "requiresUserApproval": true
+    },
+    "dslMapping": {
+      "workspace-write": "workspace-write + approval/ask",
+      "danger-full-access": "danger-full-access + approval/never",
+      "custom": "调节项组合不匹配表项时推导，客户端不可选中"
+    },
+    "wiring": {
+      "_rule": "接线（响应独立复审缺陷①）：本节点是意图推荐基线，真正生效靠 DSH 原生 permissionPresets（set(session,name)/每会话固定/进程级表）。",
+      "channel": [
+        "DSH /permissionPresets 命令",
+        "GUI 权限选择器（dsh-client-ui-permission-presets）",
+        "ctx.permissionPresets.set(session, name)"
+      ],
+      "verifyScript": "hotplug-changerecord/stitch45-permission/verify-permission-binding.NOTES.mjs（操作说明文档，非独立验证脚本；真实验证=perm_inspect 宿主侧调用，见 evidence）",
+      "evidence": "hotplug-changerecord/stitch45-permission/permission-binding-evidence.md（实测 current=workspace-write，与三角色声明一致）"
+    },
+    "authority": {
+      "_rule": "冲突归属（响应独立复审缺陷②）：DSH 运行时生效值是唯一权威；config 声明是意图推荐。冲突时以运行时为准，config 视为过期由编排层提示。",
+      "runtimeAuthoritative": true,
+      "configIsRecommendation": true,
+      "onConflict": "以 permissionPresets.current() 运行时值为准；编排层按实际值调整，不强行覆盖"
+    }
+  },
+  "modelResilience": {
+    "enabled": false,
+    "_rule": "缝合点#6 备选模型韧性：设计草案/参考实现，未接线（enabled=false）。独立复审判定：resolveExecution/recordUpgrade/checkUpgradeTrigger/sandboxBridgeRequest/escalateOutOfBounds 全部零接线=死代码；P1 缺陷（probe-fail 双系统监听、越界分类由被审查者自报、难度路由无代码路径、pseudoTimeout 死配置）未修。真实痛点已有简单解法（父对话核查/去schema/换gpt/EPERM父对话执行），复杂机制待真实需求时按需接线。保留设计供参考。",
+    "roles": {
+      "execution": {
+        "primary": "tiancai4/claude-haiku-4-5-20251001",
+        "fallbacks": [
+          {
+            "model": "tiancai4/claude-sonnet-4-6",
+            "billing": "high",
+            "desc": "能力升级：比 haiku 聪明，抓谎报/复杂执行"
+          },
+          {
+            "model": "tiancai4/claude-opus-4-6",
+            "billing": "high",
+            "desc": "最强兜底：架构级执行能力，最后手段"
+          }
+        ],
+        "escalateTo": "architecture",
+        "escalateDesc": "两个执行备选全挂 → 架构师亲身上阵（复用 merge.mode=architecture+execution：设计并执行）"
+      }
+    },
+    "triggers": {
+      "lieReport": {
+        "type": "review-catch",
+        "threshold": 2,
+        "desc": "复审/终审抓到谎报或重大缺陷 2 次 → 升级到 fallback[0]"
+      },
+      "errorCount": {
+        "type": "errors",
+        "threshold": 3,
+        "desc": "连续执行报错 3 次 → 升级到 fallback[0]"
+      },
+      "unavailable": {
+        "type": "probe-fail",
+        "count": 2,
+        "desc": "探测连续 2 次失败 → 换 fallback[0]（与 degradation 探测规则一致）"
+      },
+      "pseudoTimeout": {
+        "type": "queue-delay",
+        "thresholdMs": 120000,
+        "desc": "排队超阈值：reasoning chunk 在流即不算空闲（escalation 已有），探测超时≠模型挂了，不误换"
+      }
+    },
+    "difficultyRouting": {
+      "_rule": "按任务难易度决定执行强度，防止简单任务也烧高成本。",
+      "simple": {
+        "execution": "primary only",
+        "peerReview": "none",
+        "desc": "简单任务：单执行层，不升级不复核"
+      },
+      "medium": {
+        "execution": "primary；若 primary troubled 用 fallback[0]",
+        "peerReview": "light",
+        "desc": "中等任务：第二模型轻量复核（只看 diff/测试输出/关键断言，不全跑）"
+      },
+      "hard": {
+        "execution": "fallback[1] 或 architecture",
+        "peerReview": "full",
+        "desc": "高风险任务：最强执行或架构师，双执行交叉校验（结果比对）"
+      }
+    },
+    "peerReview": {
+      "enabled": true,
+      "mode": "by-difficulty",
+      "secondary": "tiancai4/claude-sonnet-4-6",
+      "desc": "双执行复核（臭皮匠）：按难度开关——simple=none / medium=light(审产出物) / hard=full(独立双跑比对)；成本随难度递增"
+    },
+    "sandboxBridge": {
+      "enabled": true,
+      "_rule": "沙箱受限 → 父对话执行桥：执行层遇 EPERM/需宿主侧 且 命令合法受控 → 转父对话执行，父对话只执行、截断返回、顺手审查越界。",
+      "transfer": [
+        "spawn-EPERM",
+        "readonly-required"
+      ],
+      "parentReturns": "truncated (exit code + 前20行)",
+      "parentAudits": true,
+      "guard": {
+        "_rule": "父对话审查门：合法且受控 → 执行；越界 → 拦下不执行 → 转架构师规划门；恶意/失控（系统目录/凭据/网络下载）→ 直接拦截上报用户，连架构师都不回"
+      }
+    },
+    "escalationChain": {
+      "_rule": "越界裁决三级链：父对话审查(第一道) → 架构师规划(第二道) → 用户终裁(最后一道)。原则：用户是最后一道闸不是第一道闸。",
+      "parentGate": {
+        "legalAndControlled": "执行 → 截断结果返回执行层",
+        "outOfBounds": "拦下不执行 → 转架构师",
+        "malicious": "直接拦截上报用户，不回架构师"
+      },
+      "architectGate": {
+        "canRedesign": "输出不越界替代方案（换路径/参数/沙箱内做法）→ 回执行层重做",
+        "mustViolate": "附风险评估+最小化方案 → 冒泡用户终裁",
+        "maliciousConfirm": "终止该执行层任务，上报用户"
+      }
+    },
+    "_selfcheck": {
+      "_rule": "底层逻辑自检（落地前验证，防致命错误）：",
+      "checks": [
+        "① 升级无死循环：fallbacks 数组有限(2个)，升级路径 primary→f0→f1→architecture，无循环引用；每次升级记入历史，同任务内升级次数>2 即冒泡用户",
+        "② 仲裁无冲突：modelResilience 升级与 degradation 降级方向相反，但触发互斥（probe-fail 归 degradation，能力弱/谎报归 modelResilience），不会同时触发",
+        "③ 上下文不爆炸：父对话桥只转交『EPERM+只读/受控』命令，结果截断(exit+前20行)；双执行 full 模式仅 hard 任务，受 maxRejectRetry 与任务预算约束",
+        "④ 伪超时不误换：queue-delay 只修正判定，不触发模型更换（模型更换仅由 probe-fail/review-catch/errors 触发）",
+        "⑤ 权限不被架空：父对话桥 ≠ 万能通道——越界仍走架构师规划门/用户终裁，父对话不代为放行"
+      ]
+    }
+  }
+}

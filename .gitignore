@@ -1,0 +1,9 @@
+# publish/ 发布仓库 .gitignore
+# 防止个人/过程产物混入发布仓库
+node_modules/
+*.log
+.trash/
+.DS_Store
+tri-model-history.jsonl
+__pycache__/
+*.pyc
