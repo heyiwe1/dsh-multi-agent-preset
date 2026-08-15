@@ -1,12 +1,31 @@
 # Tri-Model Agent Preset（三模协同）
 
-三模型协同模式的 **DeepSeek Harness agent preset**：方向师定方向（不可代行）+ 架构师设计 + 执行者干活，审阅=high（独立复审 + 方向师终审），两级闸门防漏报，角色权限意图挂 DSH 原生 permissionPresets（已实证），MCP 互通能力保留（默认禁用安全处置）。**随包附带三模按钮组件（`tri-model-ui`）与一键启动脚本（`start-dsh.*`）**。
+> **为 DeepSeek Harness 量身定制的多 agent 协同 preset**——方向师定方向、架构师设计方案、执行者落地实现，配以可交互的三模工具栏与一键启动，把"决策 → 设计 → 执行 → 独立复审 → 终审"的完整协同链路变成开箱即用的能力。
+
+## ✨ 特性一览
+
+- **三角色协同**：方向师（目标/优先级/验收，**不可代行**）+ 架构师（方案设计）+ 执行者（落地实现）；角色**热插拔**——改 `tri-model-config.json` 即换模型，角色不绑定模型。
+- **完整审阅链**：独立复审 → 方向师终审，**两级闸门**防漏报；应急代行模式、决策门禁、长对话复核、权限与沙箱处理链一应俱全（见 `TRI-MODEL-PROTOCOL.md`）。
+- **可交互按钮**：`tri-model-ui` 在 DSH 对话工具栏提供 **●三模协同 / ⚙设置 / 映射摘要**，overlay 设置面板 7 项配置（模型/角色/合并/审阅/澄清/冒泡/安全），实时读写配置文件，4 个后端路由（get-state/set-config/reset-config/build-command）。
+- **一键启动**：`start-dsh.*` 拉起 DSH web 服务并自动打开网页（服务端+网页端合一）。
+- **随包文档齐全**：协议总则、发布说明、核对清单、上传教程、按钮交付文档，开箱可读。
+
+## 🚀 快速开始
+
+```powershell
+# 1. 复制 preset（或按 README「安装」节手动放）
+#    - 用 DSH agentPresets.copy(from, id) 复制到用户根
+# 2. 放配置：config/tri-model-config.json → 你的工作区，按需改 roles
+# 3. 挂载校验：standingKeyFor('<id>') 应返回 OK
+# 4. 新建会话选该 preset，确认工具列表
+# 5.（可选）安装按钮 tri-model-ui + 一键启动 start-dsh
+```
 
 > 🔴 **安装后第一件事：读 `TRI-MODEL-PROTOCOL.md`（协议总则，入口必读）**——三角色定义（方向师不可代行）、应急代行边界、顶层决策规则、流程铁律、经验教训。
 >
 > 版本：2026-08-15（发布物 = preset + 按钮组件 + 一键启动 + 协议文件）
-> 状态：**#3 MCP 互通、#5 权限意图 真落地（实证）；#1 expected_output 真落地（前会话 config 生效，无本轮实证）；#2 能力路由 / #4 变更租约 / #6 备选韧性 为设计草案（enabled=false，未接线，真实需求时按需启用）**；并发编排规范见 `concurrency-guide.md`（先规范后实战）
-> 配套：`tri-model-config.json`（热插拔配置）+ `workflow-template.md`（编排模板，含草案函数定义）+ `TRI-MODEL-PROTOCOL.md`（协议总则）
+> 状态：**#3 MCP 互通、#5 权限意图 真落地（实证）；#1 expected_output 真落地（前会话 config 生效）；#2 能力路由 / #4 变更租约 / #6 备选韧性 为设计草案（enabled=false，未接线，真实需求时按需启用）**；并发编排规范见 `concurrency-guide.md`（先规范后实战）
+> 配套：`tri-model-config.json`（热插拔配置）+ `workflow-template.md`（编排模板）+ `TRI-MODEL-PROTOCOL.md`（协议总则）
 
 ## 目录
 
