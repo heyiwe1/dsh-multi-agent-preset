@@ -125,12 +125,13 @@ tri-model-ui/                           # 三模按钮组件（客户端插件�
 | `clarify/bounce` | 人机交互 | 启动澄清 / NEED_USER 冒泡 |
 | `safety/escalation` | 安全/超时 | git 快照/.trash/分层空闲超时 |
 
-## 风险与注意（诚实说明）
+## 风险与注意
 
 1. **MCP 互通默认禁用**：`agent.cordis.yml` 的 `mcp-fs` 行 `disabled:true`——`npx` 下载即执行会触发 Windows Defender/卡巴斯基启发式报毒（实测 `Trojan:Win32/PowhidSubExec.B`）。启用请删 `disabled: true` 并**改用本地 vendored server**（零下载），否则发布用户可能被杀软拦截。
 2. **角色模型可换**：direction 当前是 gpt-5.4（high），换模型改 `roles` 即可；per-call 模型只可做方向/终审。
 3. **运行验证**：MCP 的运行时工具调用证据需在宿主侧/用户终端执行（沙箱内 spawn 受限 EPERM），preset 仅保证组合可挂载。
 4. **不信任整个目录**：如遇杀软，只按文件级指纹（SHA256/integrity）添加信任，勿整目录加白。
+5. **EN（English notice）**：This project has **only been tested in a Chinese-language environment**, and the agent prompts / UI copy are **in Chinese**. If you encounter issues in a non-Chinese locale, please **open a GitHub Issue** with a detailed reproduction — we will respond and fix. Non-Chinese speakers are welcome to report problems via Issues even if you cannot describe them in Chinese.
 
 ## 演进
 
