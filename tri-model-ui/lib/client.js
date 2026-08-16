@@ -21,7 +21,9 @@ window.__ModuleLoader__.load({
     var react = require("react");
 
     // Kickoff constant for ●三模协同 button
-    var KICKOFF = "三模协同：方向师定方向→架构师设计→执行者实施，按 tri-model-config.json 执行。";
+    // 方向师评估（2026-08-15）：按钮=发现/引导/拒绝错误降级；preset=真正提供三模能力；协议文件=可审计规则。
+    // 最小核心门禁 + 协议文件入口 + 缺失即报告（不塞完整协议正文，防版本漂移与 token 膨胀）。
+    var KICKOFF = "启动三模协同：先确认当前会话是否已加载 tri-model preset；未加载时读取工作区 TRI-MODEL-PROTOCOL.md 与 tri-model-config.json。仅当协议和角色映射可用时，按『方向师定向 → 架构师设计 → 执行者实施 → 独立复审 → 方向师终审』执行；缺少 preset 或协议文件时先报告缺失项，不要自行模拟三模流程。";
 
     // ============ Pub/Sub for settings panel open/close ============
     var settingsOpen = false;
