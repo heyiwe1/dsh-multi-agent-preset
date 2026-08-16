@@ -129,7 +129,7 @@ tri-model-ui/                           # 三模按钮组件（客户端插件�
 
 1. **三模协议是会话级，不是全局插件**：新建会话**必须选 `tri-model` preset** 才会启用三角色协同（方向师/架构师/执行者）；**全局按钮（`tri-model-ui`）≠ 已启用三模协议**——未选 preset 的会话点击按钮，AI 没有三角色 persona/协议上下文。此时按钮会引导读取工作区的 `TRI-MODEL-PROTOCOL.md` 与 `tri-model-config.json`；若两者都不可用，AI 会报告缺失而非自行模拟三模流程。**正确用法**：新会话选 tri-model preset（或明确说"用三模协同"），再配合按钮使用。
 2. **MCP 互通默认禁用**：`agent.cordis.yml` 的 `mcp-fs` 行 `disabled:true`——`npx` 下载即执行会触发 Windows Defender/卡巴斯基启发式报毒（实测 `Trojan:Win32/PowhidSubExec.B`）。启用请删 `disabled: true` 并**改用本地 vendored server**（零下载），否则发布用户可能被杀软拦截。
-3. **角色模型可换**：direction 当前是 gpt-5.4（high），换模型改 `roles` 即可；per-call 模型只可做方向/终审。
+3. **角色模型与计费可换（热插拔）**：direction 当前是 gpt-5.4（high，按 token，非 per-call）；换模型改 `roles` 即可。**计费以 `config.models` 实际配置为准**——"per-call 模型只可做方向/终审"仅适用于配置为 per-call 的模型（如 gemini 系列），不代表方向角色必然 per-call（详见 `TRI-MODEL-PROTOCOL.md` 计费事实优先级）。
 4. **运行验证**：MCP 的运行时工具调用证据需在宿主侧/用户终端执行（沙箱内 spawn 受限 EPERM），preset 仅保证组合可挂载。
 5. **不信任整个目录**：如遇杀软，只按文件级指纹（SHA256/integrity）添加信任，勿整目录加白。
 6. **EN（English notice）**：This project has **only been tested in a Chinese-language environment**, and the agent prompts / UI copy are **in Chinese**. If you encounter issues in a non-Chinese locale, please **open a GitHub Issue** with a detailed reproduction — we will respond and fix. Non-Chinese speakers are welcome to report problems via Issues even if you cannot describe them in Chinese.

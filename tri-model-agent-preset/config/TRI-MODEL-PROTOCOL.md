@@ -1,5 +1,3 @@
-﻿> 本文件是 TRI-MODEL-PROTOCOL.md 的发布副本（copied from canonical（在工作区根））。修改协议请改 canonical 再同步副本。
-
 # 三模协同 · 协议与经验总则（入口必读）
 
 > 本文件是**三模协同项目最显眼的协议入口**：任何新对话/新进程/新合作者，先读本文件，再看 `RESUME-HANDOFF.md`（状态与待办）。
@@ -18,6 +16,8 @@
 | **执行者**（当前承担见 config.roles） | 按已确认方案实施 | 父对话可临时应急代行 | 已批准方案内的实现细节 |
 
 > ⚠️ **模型名称不能替代角色名称**：方向师是职责和权力角色，当前承担它的模型由 `config.roles.direction` 热插拔决定（示例：tiancai2/gpt-5.4）。换了模型，角色不变；文档不绑定具体模型名（防过期、防"模型绑定"错觉）。
+
+> 💰 **计费事实优先级（2026-08-15 方向师评估，防新对话误读）**：**角色名称不等于计费方式。** 各角色当前使用的模型、计费档位及预算限制，以运行时 `config.models` / `config.roles` 为准，**不得根据角色名称、历史配置或下文的档位规则推断**。当前 `direction` 使用 `tiancai2/gpt-5.4` 的 **high** 档，按 token 计费，**非 per-call**；per-call 仅适用于当前配置明确标记为 per-call 的模型（如 xiaoenai/gemini 系列）。示例/历史表述（如"per-call 模型只做方向/终审"）是**条件规则（针对 per-call 模型）**，不表示 direction 角色必然用 per-call 模型。
 
 **常规链路**：`方向师定向/决策 → 架构师设计 → 执行者实现 → 独立复审 → 方向师终审`
 
@@ -193,5 +193,3 @@
 - `COMPLETION-REPORT.md` — 完成报告（纠偏版）
 - `concurrency-guide.md` — 并发编排规范（先规范后实战）
 - `DSH-TRUST-CHECKLIST.md` — 文件级信任与安全处置
-
-
